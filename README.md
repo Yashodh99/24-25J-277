@@ -19,7 +19,7 @@ This component leverages vibration sensors to detect and identify animal movemen
 
 **Technologies Used:**  
 - **Hardware:** Raspberry Pi, Piezoelectric Vibration Sensors.  
-- **Software:** Python, TensorFlow, PostgreSQL, SciPy.
+- **Software:** Python, TensorFlow, FireBase, SciPy.
 
 ---
 
@@ -36,7 +36,7 @@ This component predicts animal behavior using historical and real-time data to p
 
 **Technologies Used:**  
 - **Machine Learning:** TensorFlow (RNN, LSTM).  
-- **Database:** PostgreSQL.  
+- **Database:** FireBase.  
 
 ---
 
