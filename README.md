@@ -37,7 +37,6 @@ This component predicts animal behavior using historical and real-time data to p
 **Technologies Used:**  
 - **Machine Learning:** TensorFlow (RNN, LSTM).  
 - **Database:** PostgreSQL.  
-- **Notification Service:** Telegram Bot API.
 
 ---
 
@@ -59,19 +58,19 @@ Improve detection accuracy by dynamically adjusting sensor sensitivity based on 
 
 ---
 
-### 4. Optimizing Deterrent Strategies Using Machine Learning
+### 4. Optimizing Deterrent Strategies 
 **Author:** T.D. Akmeemana (IT21282386)  
 **Objective:**  
 Develop intelligent systems to tailor animal deterrent strategies based on behavioral analysis.
 
 #### Key Features:
-- Use IoT sensors like geophones and acoustic devices for data collection.
+- Use IoT sensors like vibration sensors and acoustic devices for data collection.
 - Predict animal behaviors using ML.
 - Deploy species-specific deterrents.
 - Minimize human-animal conflicts while reducing harm to non-target species.
 
 #### Technologies Used:
-- **Hardware:** IoT sensors (vibration, geophones, acoustic).
+- **Hardware:** IoT sensors (vibration sensor,weather sensor,soil-moisture sensor).
 - **Software:** TensorFlow, Python.
 - **Methodologies:** Reinforcement learning, adaptive algorithms.
 
