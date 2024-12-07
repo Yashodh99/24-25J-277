@@ -65,12 +65,12 @@ Develop intelligent systems to tailor animal deterrent strategies based on behav
 
 #### Key Features:
 - Use IoT sensors like vibration sensors and acoustic devices for data collection.
-- Predict animal behaviors using ML.
+- Ensure animal behaviors.
 - Deploy species-specific deterrents.
 - Minimize human-animal conflicts while reducing harm to non-target species.
 
 #### Technologies Used:
-- **Hardware:** IoT sensors (vibration sensor,weather sensor,soil-moisture sensor).
+- **Hardware:** IoT sensors (vibration sensor, weather sensor,soil-moisture sensor).
 - **Software:** TensorFlow, Python.
 - **Methodologies:** Reinforcement learning, adaptive algorithms.
 
