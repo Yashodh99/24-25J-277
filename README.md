@@ -87,6 +87,11 @@ Develop intelligent systems to tailor animal deterrent strategies based on behav
 
 ---
 
+## System Architecture Diagram
+
+
+![Screenshot 1](/images/diagram.png)
+
 ## Benefits
 
 - **Enhanced Security:** Proactively prevent damage to crops and livestock.  
