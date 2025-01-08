@@ -21,5 +21,6 @@ animal_model = tf.keras.models.load_model(
 with open('models/w_model.dat', 'rb') as f:
     w_model = pickle.load(f)
 
+#added motion data set
 with open('models/motion_model.dat', 'rb') as f:
     motion_model = pickle.load(f)
