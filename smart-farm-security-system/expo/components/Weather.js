@@ -103,3 +103,108 @@ export default class Weather_Code extends React.Component {
       }
   }
 
+  render() {
+    const { showAlert } = this.state;
+
+    return (
+      <ScrollView>
+        <View style={styles.container}>
+
+          <View style={styles.center}>
+            <Image
+              source={require("./../assets/logo2.jpg")}
+              style={{ width: 150, height: 150, marginBottom: 20, marginTop: 10, borderRadius: 100 }}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Temperature (°C):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.temperature}
+              onChangeText={(temperature) => this.setState({ temperature })}
+              placeholder={'Temperature'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Rain (mm):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.rain}
+              onChangeText={(rain) => this.setState({ rain })}
+              placeholder={'Rain'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Windspeed (km/h):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.windspeed}
+              onChangeText={(windspeed) => this.setState({ windspeed })}
+              placeholder={'Windspeed'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Humidity (%):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.humidity}
+              onChangeText={(humidity) => this.setState({ humidity })}
+              placeholder={'Humidity'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Soil Moisture (%):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.soilMoisture}
+              onChangeText={(soilMoisture) => this.setState({ soilMoisture })}
+              placeholder={'Soil Moisture'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <View style={styles.center}>
+            <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={this.onInsert}>
+              {!this.state.loader ? (
+                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Submit</Text>
+              ) : null}
+              {this.state.loader ? (
+                <ActivityIndicator size="large" color={"#ffffff"} />
+              ) : null}
+            </TouchableOpacity>
+          </View>
+
+          {this.state.result == true ? (
+            <View style={styles.center}>
+              <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{this.state.resultTxt}</Text>
+            </View>
+          ) : null}
+
+          <AwesomeAlert
+            show={showAlert}
+            title={this.state.title}
+            message={this.state.message}
+            closeOnTouchOutside={true}
+            closeOnHardwareBackPress={false}
+            showCancelButton={true}
+            cancelText="Close"
+            cancelButtonColor="#AEDEF4"
+            onCancelPressed={() => {
+              this.hideAlert();
+            }}
+          />
+
+        </View>
+      </ScrollView>
+    );
+  }
+};
