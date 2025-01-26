@@ -252,3 +252,32 @@ export default class Animal extends React.Component {
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#ffffff',
+    },
+    center: {
+        alignItems: 'center',
+    },
+    labelText: {
+        fontWeight: 'bold',
+        fontSize: 14,
+        marginLeft: '10%',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '80%',
+        height: 45,
+        borderRadius: 10,
+    },
+    loginButton: {
+        backgroundColor: '#1875bb',
+    },
+    registerButton: {
+        backgroundColor: '#1875bb',
+    },
+});
