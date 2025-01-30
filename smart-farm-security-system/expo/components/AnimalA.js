@@ -64,15 +64,15 @@ export default class AnimalA extends React.Component {
                 const vib = parseFloat(res.data.vibrationValue);
                 let adjustedVibration = vib;
 
-                // Weather-based adjustment
+
                 const { weatherCondition } = this.state;
                 if (weatherCondition === "Dry") adjustedVibration = vib * 0.99;
                 else if (weatherCondition === "Wet") adjustedVibration = vib * 1.01;
 
-                adjustedVibration = Number(adjustedVibration); // ensure it's a number
+                adjustedVibration = Number(adjustedVibration);
                 this.setState({ distanceValue: res.data.distanceValue + "" });
 
-                // Fill next available x1 - x10
+
                 for (let i = 1; i <= 10; i++) {
                     if (this.state[`x${i}`] === null) {
                         this.setState({ [`x${i}`]: adjustedVibration });
@@ -80,7 +80,7 @@ export default class AnimalA extends React.Component {
                     }
                 }
 
-                // If all values are filled, send for prediction
+
                 if (this.state.x10 !== null) {
                     const motionUrl = "http://" + LocalIP + ":2222/motion";
                     const data = {
