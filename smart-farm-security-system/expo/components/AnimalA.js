@@ -20,7 +20,10 @@ export default class AnimalA extends React.Component {
             fetch("http://192.168.4.1/data")
                 .then(res => res.json())
                 .then(data => {
-                    this.setState({ distanceValue: data.distanceValue });
+                    this.setState({
+                        distanceValue: data.distanceValue,
+                        vibrationValue: data.vibrationValue // no history yet
+                    });
                 });
         }, 2000);
     }
@@ -30,6 +33,7 @@ export default class AnimalA extends React.Component {
             <View>
                 <Text>Animal Detection Page</Text>
                 <Text>Distance: {this.state.distanceValue}</Text>
+                <Text>Vibration: {this.state.vibrationValue}</Text>
             </View>
         );
     }
