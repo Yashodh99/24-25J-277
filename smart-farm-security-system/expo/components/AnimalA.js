@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 
 export default class AnimalA extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            loader: false,
+            loader: true,
             message: '',
             showAlert: false,
             title: '',
@@ -20,9 +20,11 @@ export default class AnimalA extends React.Component {
             fetch("http://192.168.4.1/data")
                 .then(res => res.json())
                 .then(data => {
+                    console.log("Fetched:", data);
                     this.setState({
                         distanceValue: data.distanceValue,
-                        vibrationValue: data.vibrationValue // no history yet
+                        vibrationValue: data.vibrationValue,
+                        loader: false
                     });
                 });
         }, 2000);
@@ -31,9 +33,15 @@ export default class AnimalA extends React.Component {
     render() {
         return (
             <View>
-                <Text>Animal Detection Page</Text>
-                <Text>Distance: {this.state.distanceValue}</Text>
-                <Text>Vibration: {this.state.vibrationValue}</Text>
+                {this.state.loader ? (
+                    <ActivityIndicator size="large" color="#0000ff" />
+                ) : (
+                    <>
+                        <Text>Animal Detection Page</Text>
+                        <Text>Distance: {this.state.distanceValue}</Text>
+                        <Text>Vibration: {this.state.vibrationValue}</Text>
+                    </>
+                )}
             </View>
         );
     }
