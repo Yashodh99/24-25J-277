@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
+import AwesomeAlert from 'react-native-awesome-alerts';
 
 export default class AnimalA extends React.Component {
     constructor(props) {
@@ -42,6 +43,16 @@ export default class AnimalA extends React.Component {
                         <Text>Vibration: {this.state.vibrationValue}</Text>
                     </>
                 )}
+
+                <AwesomeAlert
+                    show={this.state.showAlert}
+                    title={this.state.title}
+                    message={this.state.message}
+                    closeOnTouchOutside={true}
+                    showCancelButton={true}
+                    cancelText="OK"
+                    onCancelPressed={() => this.setState({ showAlert: false })}
+                />
             </View>
         );
     }
