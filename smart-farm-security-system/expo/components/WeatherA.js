@@ -122,4 +122,79 @@ export default class Weather_Code extends React.Component {
       title: '',
     });
   };
-  
+
+  onInsert = async (e) => {
+    if (this.state.temperature !== "") {
+      if (this.state.rain !== "") {
+        if (this.state.windspeed !== "") {
+          if (this.state.humidity !== "") {
+            if (this.state.soilMoisture !== "") {
+              if (this.state.vibration !== "") { 
+                this.setState({ loader: true });
+                const url = "http://" + LocalIP + ":2222/weather";
+                const data = JSON.stringify({
+                  temperature: this.state.temperature,
+                  rain: this.state.rain,
+                  windspeed: this.state.windspeed,
+                  humidity: this.state.humidity,
+                  soilMoisture: this.state.soilMoisture,
+                  vibration: this.state.vibration, 
+                });
+                await axios.post(url, data, {
+                  headers: { "Content-Type": "application/json" },
+                }).then(async (res) => {
+                  let weatherCondition = "";
+                  if (res.data.res >= 0 && res.data.res < 50) {
+                    weatherCondition = "Dry";
+                  }  else if (res.data.res >= 50 && res.data.res < 60) {
+                    weatherCondition = "Normal";
+                  } else if (res.data.res >= 60 && res.data.res < 70) {
+                    weatherCondition = "Wet";
+                  } else {
+                    weatherCondition = "Unidentified";
+                  }
+                  let actualVibration;
+                const vibration = parseFloat(this.state.vibration); 
+                if (weatherCondition === "Dry") {
+                  actualVibration = vibration * 0.99;
+                } else if (weatherCondition === "Normal") {
+                  actualVibration = vibration * 1;
+                } else if (weatherCondition === "Wet") {
+                  actualVibration = vibration * 1.01;
+                } else {
+                  actualVibration = vibration; 
+                }
+                  this.setState({
+                    loader: false,
+                    result: true,
+                    resultTxt: `Weather Condition: ${weatherCondition}`,
+                    actualvibration: `Actual Vibration:${actualVibration}`
+                    
+                  });
+                  console.log(res.data);
+                });
+              } else {
+                this.setState({ title: "Error!", message: "Vibration data is not available!" });
+                this.showAlert();
+              }
+            } else {
+              this.setState({ title: "Error!", message: "Soil Moisture data is not available!" });
+              this.showAlert();
+            }
+          } else {
+            this.setState({ title: "Error!", message: "Please enter Humidity!" });
+            this.showAlert();
+          }
+        } else {
+          this.setState({ title: "Error!", message: "Please enter Windspeed!" });
+          this.showAlert();
+        }
+      } else {
+        this.setState({ title: "Error!", message: "Please enter Rain!" });
+        this.showAlert();
+      }
+    } else {
+      this.setState({ title: "Error!", message: "Please enter Temperature!" });
+      this.showAlert();
+    }
+  };
