@@ -198,3 +198,130 @@ export default class Weather_Code extends React.Component {
       this.showAlert();
     }
   };
+
+  render() {
+    const { showAlert } = this.state;
+
+    return (
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={styles.center}>
+            <Image
+              source={require("./../assets/logo2.jpg")}
+              style={{ width: 150, height: 150, marginBottom: 20, marginTop: 10, borderRadius: 100 }}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Temperature (°C):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.temperature.toString()}
+              onChangeText={(temperature) => this.setState({ temperature })}
+              placeholder={'Temperature'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Rain (mm):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.rain.toString()}
+              onChangeText={(rain) => this.setState({ rain })}
+              placeholder={'Rain'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Windspeed (km/h):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.windspeed.toString()}
+              onChangeText={(windspeed) => this.setState({ windspeed })}
+              placeholder={'Windspeed'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Humidity (%):</Text>
+          <View style={styles.center}>
+            <TextInput
+              value={this.state.humidity.toString()}
+              onChangeText={(humidity) => this.setState({ humidity })}
+              placeholder={'Humidity'}
+              keyboardType='numeric'
+              style={styles.input}
+            />
+          </View>
+
+          <Text style={styles.labelText}>Soil Moisture (%):</Text>
+          <View style={styles.center}>
+  {!this.state.loader ? (
+    <TextInput
+      value={(parseFloat(this.state.soilMoisture)).toString()} 
+      onChangeText={(text) => {
+  
+        const originalValue = (parseFloat(text) * 1000).toString();
+        this.setState({ soilMoisture: isNaN(originalValue) ? '' : originalValue });
+      }}
+      placeholder={'Soil Moisture'}
+      keyboardType='numeric'
+      style={styles.input}
+    />
+  ) : (
+    <ActivityIndicator size="large" color={"#000000"} />
+  )}
+</View>
+
+          <Text style={styles.labelText}>Vibration:</Text>
+          <View style={styles.center}>
+            {!this.state.loader ? (
+              <TextInput
+                value={this.state.vibration.toString()}
+                onChangeText={(vibration) => this.setState({ vibration })}
+                placeholder={'Vibration'}
+                keyboardType='numeric'
+                style={styles.input}
+              />
+            ) : (
+              <ActivityIndicator size="large" color={"#000000"} />
+            )}
+          </View>
+
+          <View style={styles.center}>
+            <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={this.onInsert}>
+              {!this.state.loader ? (
+                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Submit</Text>
+              ) : (
+                <ActivityIndicator size="large" color={"#ffffff"} />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {this.state.result && (
+            <View style={styles.center}>
+              <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{this.state.resultTxt}</Text>
+              <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{this.state.actualvibration}</Text>
+            </View>
+          )}
+
+          <AwesomeAlert
+            show={showAlert}
+            title={this.state.title}
+            message={this.state.message}
+            closeOnTouchOutside={true}
+            closeOnHardwareBackPress={false}
+            showCancelButton={true}
+            cancelText="Close"
+            cancelButtonColor="#AEDEF4"
+            onCancelPressed={() => {
+              this.hideAlert();
+            }}
+          />
+        </View>
+      </ScrollView>
+    );
+  }
+}
