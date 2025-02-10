@@ -13,6 +13,16 @@ export default class AnimalA extends React.Component {
             resultTxt: '',
             distanceValue: '',
             vibrationValue: '',
+            x1: '',
+            x2: '',
+            x3: '',
+            x4: '',
+            x5: '',
+            x6: '',
+            x7: '',
+            x8: '',
+            x9: '',
+            x10: '',
         };
     }
 
@@ -21,11 +31,23 @@ export default class AnimalA extends React.Component {
             fetch("http://192.168.4.1/data")
                 .then(res => res.json())
                 .then(data => {
-                    console.log("Fetched:", data);
                     this.setState({
                         distanceValue: data.distanceValue,
-                        vibrationValue: data.vibrationValue,
-                        loader: false
+                        loader: false,
+                    });
+
+                    // WRONG: No logic to check which slot is next — all get filled at once
+                    this.setState({
+                        x1: data.vibrationValue,
+                        x2: data.vibrationValue,
+                        x3: data.vibrationValue,
+                        x4: data.vibrationValue,
+                        x5: data.vibrationValue,
+                        x6: data.vibrationValue,
+                        x7: data.vibrationValue,
+                        x8: data.vibrationValue,
+                        x9: data.vibrationValue,
+                        x10: data.vibrationValue,
                     });
                 });
         }, 2000);
@@ -34,16 +56,8 @@ export default class AnimalA extends React.Component {
     render() {
         return (
             <View>
-                {this.state.loader ? (
-                    <ActivityIndicator size="large" color="#0000ff" />
-                ) : (
-                    <>
-                        <Text>Animal Detection Page</Text>
-                        <Text>Distance: {this.state.distanceValue}</Text>
-                        <Text>Vibration: {this.state.vibrationValue}</Text>
-                    </>
-                )}
-
+                <Text>Distance: {this.state.distanceValue}</Text>
+                <Text>Vibration X1: {this.state.x1}</Text>
                 <AwesomeAlert
                     show={this.state.showAlert}
                     title={this.state.title}
