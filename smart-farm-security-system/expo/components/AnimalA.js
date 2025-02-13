@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import axios from 'axios';
 
 export default class AnimalA extends React.Component {
     constructor(props) {
@@ -12,42 +13,39 @@ export default class AnimalA extends React.Component {
             title: '',
             resultTxt: '',
             distanceValue: '',
-            vibrationValue: '',
-            x1: '',
-            x2: '',
-            x3: '',
-            x4: '',
-            x5: '',
-            x6: '',
-            x7: '',
-            x8: '',
-            x9: '',
-            x10: '',
+            x1: '1', x2: '2', x3: '3', x4: '4', x5: '5',
+            x6: '6', x7: '7', x8: '8', x9: '9', x10: '10',
         };
     }
 
     componentDidMount() {
         this.interval = setInterval(() => {
-            fetch("http://192.168.4.1/data")
-                .then(res => res.json())
-                .then(data => {
+            axios.get("http://192.168.4.1/data")
+                .then(res => {
                     this.setState({
-                        distanceValue: data.distanceValue,
+                        distanceValue: res.data.distanceValue,
                         loader: false,
                     });
 
-                    // WRONG: No logic to check which slot is next — all get filled at once
-                    this.setState({
-                        x1: data.vibrationValue,
-                        x2: data.vibrationValue,
-                        x3: data.vibrationValue,
-                        x4: data.vibrationValue,
-                        x5: data.vibrationValue,
-                        x6: data.vibrationValue,
-                        x7: data.vibrationValue,
-                        x8: data.vibrationValue,
-                        x9: data.vibrationValue,
-                        x10: data.vibrationValue,
+                    // simulate sending to motion model — WRONG: should use POST, local IP assumed
+                    axios.get("http://localhost:5000/motion", {
+                        params: {
+                            x1: this.state.x1,
+                            x2: this.state.x2,
+                            x3: this.state.x3,
+                            x4: this.state.x4,
+                            x5: this.state.x5,
+                            x6: this.state.x6,
+                            x7: this.state.x7,
+                            x8: this.state.x8,
+                            x9: this.state.x9,
+                            x10: this.state.x10,
+                        }
+                    }).then(pred => {
+                        console.log("Predicted:", pred.data.res);
+                        this.setState({ resultTxt: pred.data.res });
+                    }).catch(err => {
+                        console.log("Prediction error:", err.message);
                     });
                 });
         }, 2000);
@@ -56,17 +54,8 @@ export default class AnimalA extends React.Component {
     render() {
         return (
             <View>
+                <Text>Result: {this.state.resultTxt}</Text>
                 <Text>Distance: {this.state.distanceValue}</Text>
-                <Text>Vibration X1: {this.state.x1}</Text>
-                <AwesomeAlert
-                    show={this.state.showAlert}
-                    title={this.state.title}
-                    message={this.state.message}
-                    closeOnTouchOutside={true}
-                    showCancelButton={true}
-                    cancelText="OK"
-                    onCancelPressed={() => this.setState({ showAlert: false })}
-                />
             </View>
         );
     }
