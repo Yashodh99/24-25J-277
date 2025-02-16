@@ -42,3 +42,35 @@ export default class Welcome extends React.Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+  },
+  input: {
+    borderBottomWidth: 1,
+    width: 80 + '%',
+    height:45,
+    marginBottom:20,
+    flexDirection: 'row',
+    alignItems:'center',
+    marginLeft: 4, 
+    borderBottomColor: '#c4c4c4',
+    color: '#000000'
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom:10,
+    width: 30 + '%',
+    height: 40,
+    borderRadius: 60
+  },
+  loginButton: {
+    backgroundColor: "#1875bb",
+  }
+});
