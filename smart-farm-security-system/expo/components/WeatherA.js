@@ -325,3 +325,37 @@ export default class Weather_Code extends React.Component {
     );
   }
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
+  center: {
+    alignItems: 'center',
+  },
+  labelText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: '10%',
+  },
+  input: {
+    borderBottomWidth: 1,
+    width: '80%',
+    height: 45,
+    marginBottom: 20,
+    borderBottomColor: '#c4c4c4',
+    color: '#000000',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '80%',
+    height: 45,
+    borderRadius: 10,
+  },
+  loginButton: {
+    backgroundColor: '#1875bb',
+  },
+});
