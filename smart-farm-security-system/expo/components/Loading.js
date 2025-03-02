@@ -25,3 +25,65 @@ export default class Loading extends React.Component {
       }
     }
   };
+
+  componentDidMount = async() => {
+    setTimeout(async() => {
+      await Linking.canOpenURL('https://google.com').then(connection => {
+      if (!connection) {
+        this.setState({ title: "Error!", message: 'Check Your Internet Connection!' })
+        this.showAlert()
+      } else {
+        this.props.navigation.replace("Welcome")
+      }
+    });
+    }, 5000);
+  }
+
+  showAlert = () => {
+    this.setState({
+      showAlert: true,
+    });
+  };
+
+  hideAlert = () => {
+    this.setState({
+      showAlert: false,
+      message: "",
+      title: "",
+    });
+  };
+  
+  render() {
+    const { showAlert } = this.state;
+    return (
+      <View style={styles.container}>
+        <Image source={require('./../assets/logo2.jpg')}
+          style={{width: 90 + '%', height: 350, borderRadius: 100}} />
+        <ActivityIndicator size="large" />
+
+        
+        <AwesomeAlert
+            show={showAlert}
+            title={this.state.title}
+            message={this.state.message}
+            closeOnTouchOutside={true}
+            closeOnHardwareBackPress={false}
+            showCancelButton={true}
+            cancelText="Close"
+            cancelButtonColor="#0e2025"
+            onCancelPressed={() => {
+              this.hideAlert();
+            }}
+          />
+
+      </View>
+    );
+  }
+}
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center"
+  }
+});
