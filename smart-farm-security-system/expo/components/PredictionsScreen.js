@@ -23,28 +23,7 @@ export default function PredictionsScreen({ route }) {
     };
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log('Signed in anonymously with UID:', user.uid);
-        setIsAuthenticated(true);
-        setAuthError(null);
-      } else {
-        console.log('User is signed out');
-        setIsAuthenticated(false);
-        signInAnonymously(auth)
-          .then(() => {
-            console.log('Signed in anonymously');
-            setIsAuthenticated(true);
-          })
-          .catch((error) => {
-            console.error('Anonymous auth failed:', error.message);
-            setAuthError('Failed to authenticate with Firebase: ' + error.message);
-            Alert.alert('Authentication Error', 'Unable to authenticate with Firebase. Some features may be limited.');
-          });
-      }
-    });
-
+  
     return () => unsubscribe();
   }, []);
 
