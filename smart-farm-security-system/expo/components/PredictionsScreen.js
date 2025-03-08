@@ -27,44 +27,7 @@ export default function PredictionsScreen({ route }) {
     return () => unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-
-    const predictionsRef = ref(db, 'predictions');
-    const unsubscribePredictions = onValue(predictionsRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const predictionList = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-          type: 'prediction',
-        }));
-        setPredictions(predictionList);
-      } else {
-        setPredictions([]);
-      }
-    }, (error) => {
-      console.error('Error fetching predictions:', error);
-      setAuthError('Failed to fetch predictions: ' + error.message);
-    });
-
-    const waitingRef = ref(db, 'waiting_for_response');
-    const unsubscribeWaiting = onValue(waitingRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const waitingList = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-          type: 'waiting',
-        }));
-        setWaitingForResponse(waitingList);
-      } else {
-        setWaitingForResponse([]);
-      }
-    }, (error) => {
-      console.error('Error fetching waiting_for_response:', error);
-      setAuthError('Failed to fetch waiting predictions: ' + error.message);
-    });
+  
 
     const tempRef = ref(db, 'temp_predictions');
     get(tempRef).then((snapshot) => {
