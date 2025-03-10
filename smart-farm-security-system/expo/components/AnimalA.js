@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, View, Text, Image } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import 'react-native-gesture-handler';
 import AwesomeAlert from 'react-native-awesome-alerts';
@@ -169,3 +169,49 @@ export default class AnimalA extends React.Component {
         );
     }
 }
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#ffffff',
+    },
+    center: {
+        marginBottom: 20,
+    },
+    resultContainer: {
+        flexDirection: 'row',  // Align text horizontally
+        alignItems: 'center',
+    },
+    resultText: {
+        fontWeight: 'bold',
+        fontSize: 24,
+        textAlign: 'center',
+    },
+    dashboardContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginTop: 30,
+    },
+    card: {
+        width: '40%',
+        height: 120,
+        margin: 10,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 5,
+        elevation: 3,
+    },
+    cardText: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+});
