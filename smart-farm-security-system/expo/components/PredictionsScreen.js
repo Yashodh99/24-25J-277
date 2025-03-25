@@ -42,32 +42,7 @@ export default function PredictionsScreen({ route }) {
 
     checkAndMovePredictions();
 
-    return () => {
-      unsubscribePredictions();
-      unsubscribeWaiting();
-    };
-  }, [isAuthenticated]);
-
-  const checkAndMovePredictions = async () => {
-    if (!isAuthenticated) return;
-
-    const tempRef = ref(db, 'temp_predictions');
-    const snapshot = await get(tempRef);
-    const tempData = snapshot.val() || {};
-    const now = new Date();
-
-    Object.keys(tempData).forEach((key) => {
-      const prediction = tempData[key];
-      const endTime = new Date(prediction.time_window.end);
-      if (endTime < now) {
-        if (validationMode === 'Auto') {
-          moveToPredictions(key, prediction);
-        } else if (validationMode === 'Manual') {
-          moveToWaiting(key, prediction);
-        }
-        remove(ref(db, `temp_predictions/${key}`));
-        setNextPrediction(null);
-        predictNextEvent();
+    
       }
     });
   };

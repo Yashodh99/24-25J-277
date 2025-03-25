@@ -5,36 +5,7 @@ import { ref, onValue, push, update, remove } from 'firebase/database';
 
 export default function DeviceControlScreen() {
   const [deviceName, setDeviceName] = useState('');
-  const [deviceType, setDeviceType] = useState('');
-  const [devices, setDevices] = useState([]);
-  const [editId, setEditId] = useState(null);
-
-  useEffect(() => {
-    const devicesRef = ref(db, 'devices');
-    const unsubscribe = onValue(devicesRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        const deviceList = Object.keys(data).map((key) => ({
-          id: key,
-          ...data[key],
-        }));
-        setDevices(deviceList);
-      } else {
-        setDevices([]);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const addOrUpdateDevice = () => {
-    if (!deviceName.trim() || !deviceType.trim()) {
-      Alert.alert('Error', 'Please enter both Device Name and Device Type.');
-      return;
-    }
-
-    const deviceData = {
-      name: deviceName.trim(),
+  const [deviceType,
       type: deviceType.trim(),
       createdAt: new Date().toISOString(),
     };
