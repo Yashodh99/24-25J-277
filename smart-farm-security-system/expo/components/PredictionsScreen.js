@@ -46,42 +46,9 @@ export default function PredictionsScreen({ route }) {
       }
     });
   };
-
-  const predictNextEvent = async () => {
-    if (!isAuthenticated) {
-      setAuthError('Cannot predict: Not authenticated');
-      return;
-    }
-
-    if (nextPrediction) {
-      const endTime = new Date(nextPrediction.time_window.end);
-      if (endTime > new Date()) {
-        console.log('Active prediction exists, cannot generate new one until time window ends.');
-        return;
-      }
-    }
-
-    try {
       const now = new Date();
       const sensorData = getSensorData();
-      const requestData = {
-        frequency: sensorData.Frequency,
-        amplitude: sensorData.Amplitude,
-        duration: sensorData.Duration,
-        hour: now.getUTCHours(),
-      };
-      console.log('Sending to API:', requestData);
-
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(requestData),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
+      const requestDa
       const result = await response.json();
       console.log('API Response:', result);
 

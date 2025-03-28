@@ -6,24 +6,6 @@ import { ref, onValue, push, update, remove } from 'firebase/database';
 export default function DeviceControlScreen() {
   const [deviceName, setDeviceName] = useState('');
   const [deviceType,
-      type: deviceType.trim(),
-      createdAt: new Date().toISOString(),
-    };
-
-    if (editId) {
-      // Update existing device
-      update(ref(db, `devices/${editId}`), deviceData)
-        .then(() => {
-          Alert.alert('Success', 'Device updated successfully!');
-          setEditId(null);
-          setDeviceName('');
-          setDeviceType('');
-        })
-        .catch((error) => {
-          Alert.alert('Error', 'Failed to update device.');
-          console.error('Error updating device:', error);
-        });
-    } else {
       // Add new device
       push(ref(db, 'devices'), deviceData)
         .then(() => {
