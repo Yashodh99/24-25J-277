@@ -49,47 +49,7 @@ export default function PredictionsScreen({ route }) {
       const now = new Date();
       const sensorData = getSensorData();
       const requestDa
-      const result = await response.json();
-      console.log('API Response:', result);
-
-      const predictedAnimal = result.predicted_animal || 'Unknown';
-      const predictedTime = new Date(now.getTime() + 24 * 3600000);
-
-      const start = predictedTime.toISOString();
-      const end = new Date(predictedTime.getTime() + 60 * 60 * 1000).toISOString();
-
-      const confidence = Math.min(99, Math.max(0, Math.random() * 100));
-      const newPrediction = {
-        animal: predictedAnimal,
-        timestamp: predictedTime.toISOString(),
-        time_window: { start, end },
-        confidence,
-        mode: validationMode,
-        createdAt: new Date().toISOString(),
-        notification: `Possible ${predictedAnimal} intrusion between ${start} and ${end}`,
-        Frequency: requestData.frequency,
-        Amplitude: requestData.amplitude,
-        Duration: requestData.duration,
-        Hour: requestData.hour,
-      };
-      console.log('Setting Next Prediction:', newPrediction);
-      setNextPrediction(newPrediction);
-
-      const tempRef = ref(db, 'temp_predictions');
-      const newTempRef = push(tempRef);
-      set(newTempRef, newPrediction);
-    } catch (error) {
-      console.error('Error predicting next event:', error.message);
-      console.error('Error details:', error);
-      const now = new Date();
-      const nextHour = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, now.getUTCHours(), 0, 0));
-      const start = nextHour.toISOString();
-      const end = new Date(nextHour.getTime() + 60 * 60 * 1000).toISOString();
-      const fallbackPrediction = {
-        animal: 'Unknown',
-        timestamp: nextHour.toISOString(),
-        time_window: { start, end },
-        confidence: 0,
+      const 
         mode: 'Auto',
         createdAt: new Date().toISOString(),
         notification: `Possible Unknown intrusion between ${start} and ${end}`,

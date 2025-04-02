@@ -1,21 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
-import { db } from '../firebase';
-import { ref, onValue, push, update, remove } from 'firebase/database';
-
-export default function DeviceControlScreen() {
-  const [deviceName, setDeviceName] = useState('');
-  const [deviceType,
-      // Add new device
-      push(ref(db, 'devices'), deviceData)
-        .then(() => {
-          Alert.alert('Success', 'Device added successfully!');
-          setDeviceName('');
-          setDeviceType('');
-        })
-        .catch((error) => {
-          Alert.alert('Error', 'Failed to add device.');
-          console.error('Error adding device:', error);
+import React,vice:', error);
         });
     }
   };
