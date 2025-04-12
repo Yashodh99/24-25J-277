@@ -1,4 +1,3 @@
-
 import * as Location from 'expo-location';
 import axios from 'axios';
 import store from './GlobalStore';
@@ -37,6 +36,14 @@ export async function startWeatherUpdates() {
       };
 
 
+      const res = await axios.post(`http://${LocalIP}:2222/weather`, JSON.stringify(weatherData), {
+        headers: { "Content-Type": "application/json" }
+      });
+
+      let weatherCondition = "Unidentified";
+      if (res.data.res >= 0 && res.data.res <= 10) weatherCondition = "Dry";
+      else if (res.data.res >= 11 && res.data.res <= 19) weatherCondition = "Normal";
+      else if (res.data.res >= 20 && res.data.res <= 40) weatherCondition = "Wet";
 
       store.setWeatherCondition(weatherCondition);
     } catch (err) {
