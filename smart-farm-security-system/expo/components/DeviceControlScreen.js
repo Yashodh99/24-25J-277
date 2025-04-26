@@ -20,39 +20,7 @@ import React,vice:', error);
       });
   };
 
-  const renderDeviceItem = ({ item }) => (
-    <View style={styles.deviceItem}>
-      <View style={styles.deviceInfo}>
-        <Text style={styles.deviceText}>Name: {item.name}</Text>
-        <Text style={styles.deviceText}>Type: {item.type}</Text>
-      </View>
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => editDevice(item)}
-        >
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteDevice(item.id)}
-        >
-          <Text style={styles.deleteButtonText}>Delete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Device Control</Text>
-      <View style={styles.formContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Device Name"
-          value={deviceName}
-          onChangeText={setDeviceName}
-        />
+  c
         <TextInput
           style={styles.input}
           placeholder="Device Type"

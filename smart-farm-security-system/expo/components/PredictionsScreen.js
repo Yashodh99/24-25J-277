@@ -47,27 +47,7 @@ export default function PredictionsScreen({ route }) {
     });
   };
       const now = new Date();
-      const sensorData = getSensorData();
-      const requestDa
-      const 
-        mode: 'Auto',
-        createdAt: new Date().toISOString(),
-        notification: `Possible Unknown intrusion between ${start} and ${end}`,
-        Frequency: 60,
-        Amplitude: 30,
-        Duration: 10,
-        Hour: nextHour.getUTCHours(),
-      };
-      console.log('Fallback Prediction:', fallbackPrediction);
-      setNextPrediction(fallbackPrediction);
-      setAuthError(`Failed to fetch prediction from API: ${error.message}`);
-      Alert.alert('Error', `Failed to fetch prediction from API: ${error.message}. Using fallback prediction for next day.`);
-    }
-  };
-
-  const validatePrediction = (prediction, sensorData) => {
-    const freqDiff = Math.abs(prediction.Frequency - sensorData.Frequency);
-    const ampDiff = Math.abs(prediction.Amplitude - sensorData.Amplitude);
+      const sennsorData.Amplitude);
     const durDiff = Math.abs(prediction.Duration - sensorData.Duration);
     return freqDiff < 20 && ampDiff < 10 && durDiff < 5;
   };
