@@ -1,4 +1,68 @@
-import React,vice:', error);
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, Alert } from 'react-native';
+import { db } from '../firebase';
+import { ref, onValue, push, update, remove } from 'firebase/database';
+
+export default function DeviceControlScreen() {
+  const [deviceName, setDeviceName] = useState('');
+  const [deviceType, setDeviceType] = useState('');
+  const [devices, setDevices] = useState([]);
+  const [editId, setEditId] = useState(null);
+
+  useEffect(() => {
+    const devicesRef = ref(db, 'devices');
+    const unsubscribe = onValue(devicesRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const deviceList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+        }));
+        setDevices(deviceList);
+      } else {
+        setDevices([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const addOrUpdateDevice = () => {
+    if (!deviceName.trim() || !deviceType.trim()) {
+      Alert.alert('Error', 'Please enter both Device Name and Device Type.');
+      return;
+    }
+
+    const deviceData = {
+      name: deviceName.trim(),
+      type: deviceType.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    if (editId) {
+      // Update existing device
+      update(ref(db, `devices/${editId}`), deviceData)
+        .then(() => {
+          Alert.alert('Success', 'Device updated successfully!');
+          setEditId(null);
+          setDeviceName('');
+          setDeviceType('');
+        })
+        .catch((error) => {
+          Alert.alert('Error', 'Failed to update device.');
+          console.error('Error updating device:', error);
+        });
+    } else {
+      // Add new device
+      push(ref(db, 'devices'), deviceData)
+        .then(() => {
+          Alert.alert('Success', 'Device added successfully!');
+          setDeviceName('');
+          setDeviceType('');
+        })
+        .catch((error) => {
+          Alert.alert('Error', 'Failed to add device.');
+          console.error('Error adding device:', error);
         });
     }
   };
@@ -20,7 +84,39 @@ import React,vice:', error);
       });
   };
 
-  c
+  const renderDeviceItem = ({ item }) => (
+    <View style={styles.deviceItem}>
+      <View style={styles.deviceInfo}>
+        <Text style={styles.deviceText}>Name: {item.name}</Text>
+        <Text style={styles.deviceText}>Type: {item.type}</Text>
+      </View>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => editDevice(item)}
+        >
+          <Text style={styles.editButtonText}>Edit</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.deleteButton}
+          onPress={() => deleteDevice(item.id)}
+        >
+          <Text style={styles.deleteButtonText}>Delete</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Device Control</Text>
+      <View style={styles.formContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Device Name"
+          value={deviceName}
+          onChangeText={setDeviceName}
+        />
         <TextInput
           style={styles.input}
           placeholder="Device Type"

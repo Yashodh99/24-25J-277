@@ -23,11 +23,69 @@ export default function PredictionsScreen({ route }) {
     };
   };
 
-  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log('Signed in anonymously with UID:', user.uid);
+        setIsAuthenticated(true);
+        setAuthError(null);
+      } else {
+        console.log('User is signed out');
+        setIsAuthenticated(false);
+        signInAnonymously(auth)
+          .then(() => {
+            console.log('Signed in anonymously');
+            setIsAuthenticated(true);
+          })
+          .catch((error) => {
+            console.error('Anonymous auth failed:', error.message);
+            setAuthError('Failed to authenticate with Firebase: ' + error.message);
+            Alert.alert('Authentication Error', 'Unable to authenticate with Firebase. Some features may be limited.');
+          });
+      }
+    });
+
     return () => unsubscribe();
   }, []);
 
-  
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const predictionsRef = ref(db, 'predictions');
+    const unsubscribePredictions = onValue(predictionsRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const predictionList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+          type: 'prediction',
+        }));
+        setPredictions(predictionList);
+      } else {
+        setPredictions([]);
+      }
+    }, (error) => {
+      console.error('Error fetching predictions:', error);
+      setAuthError('Failed to fetch predictions: ' + error.message);
+    });
+
+    const waitingRef = ref(db, 'waiting_for_response');
+    const unsubscribeWaiting = onValue(waitingRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        const waitingList = Object.keys(data).map((key) => ({
+          id: key,
+          ...data[key],
+          type: 'waiting',
+        }));
+        setWaitingForResponse(waitingList);
+      } else {
+        setWaitingForResponse([]);
+      }
+    }, (error) => {
+      console.error('Error fetching waiting_for_response:', error);
+      setAuthError('Failed to fetch waiting predictions: ' + error.message);
+    });
 
     const tempRef = ref(db, 'temp_predictions');
     get(tempRef).then((snapshot) => {
@@ -42,12 +100,130 @@ export default function PredictionsScreen({ route }) {
 
     checkAndMovePredictions();
 
-    
+    return () => {
+      unsubscribePredictions();
+      unsubscribeWaiting();
+    };
+  }, [isAuthenticated]);
+
+  const checkAndMovePredictions = async () => {
+    if (!isAuthenticated) return;
+
+    const tempRef = ref(db, 'temp_predictions');
+    const snapshot = await get(tempRef);
+    const tempData = snapshot.val() || {};
+    const now = new Date();
+
+    Object.keys(tempData).forEach((key) => {
+      const prediction = tempData[key];
+      const endTime = new Date(prediction.time_window.end);
+      if (endTime < now) {
+        if (validationMode === 'Auto') {
+          moveToPredictions(key, prediction);
+        } else if (validationMode === 'Manual') {
+          moveToWaiting(key, prediction);
+        }
+        remove(ref(db, `temp_predictions/${key}`));
+        setNextPrediction(null);
+        predictNextEvent();
       }
     });
   };
+
+  const predictNextEvent = async () => {
+    if (!isAuthenticated) {
+      setAuthError('Cannot predict: Not authenticated');
+      return;
+    }
+
+    if (nextPrediction) {
+      const endTime = new Date(nextPrediction.time_window.end);
+      if (endTime > new Date()) {
+        console.log('Active prediction exists, cannot generate new one until time window ends.');
+        return;
+      }
+    }
+
+    try {
       const now = new Date();
-      const sennsorData.Amplitude);
+      const sensorData = getSensorData();
+      const requestData = {
+        frequency: sensorData.Frequency,
+        amplitude: sensorData.Amplitude,
+        duration: sensorData.Duration,
+        hour: now.getUTCHours(),
+      };
+      console.log('Sending to API:', requestData);
+
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('API Response:', result);
+
+      const predictedAnimal = result.predicted_animal || 'Unknown';
+      const predictedTime = new Date(now.getTime() + 24 * 3600000);
+
+      const start = predictedTime.toISOString();
+      const end = new Date(predictedTime.getTime() + 60 * 60 * 1000).toISOString();
+
+      const confidence = Math.min(99, Math.max(0, Math.random() * 100));
+      const newPrediction = {
+        animal: predictedAnimal,
+        timestamp: predictedTime.toISOString(),
+        time_window: { start, end },
+        confidence,
+        mode: validationMode,
+        createdAt: new Date().toISOString(),
+        notification: `Possible ${predictedAnimal} intrusion between ${start} and ${end}`,
+        Frequency: requestData.frequency,
+        Amplitude: requestData.amplitude,
+        Duration: requestData.duration,
+        Hour: requestData.hour,
+      };
+      console.log('Setting Next Prediction:', newPrediction);
+      setNextPrediction(newPrediction);
+
+      const tempRef = ref(db, 'temp_predictions');
+      const newTempRef = push(tempRef);
+      set(newTempRef, newPrediction);
+    } catch (error) {
+      console.error('Error predicting next event:', error.message);
+      console.error('Error details:', error);
+      const now = new Date();
+      const nextHour = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, now.getUTCHours(), 0, 0));
+      const start = nextHour.toISOString();
+      const end = new Date(nextHour.getTime() + 60 * 60 * 1000).toISOString();
+      const fallbackPrediction = {
+        animal: 'Unknown',
+        timestamp: nextHour.toISOString(),
+        time_window: { start, end },
+        confidence: 0,
+        mode: 'Auto',
+        createdAt: new Date().toISOString(),
+        notification: `Possible Unknown intrusion between ${start} and ${end}`,
+        Frequency: 60,
+        Amplitude: 30,
+        Duration: 10,
+        Hour: nextHour.getUTCHours(),
+      };
+      console.log('Fallback Prediction:', fallbackPrediction);
+      setNextPrediction(fallbackPrediction);
+      setAuthError(`Failed to fetch prediction from API: ${error.message}`);
+      Alert.alert('Error', `Failed to fetch prediction from API: ${error.message}. Using fallback prediction for next day.`);
+    }
+  };
+
+  const validatePrediction = (prediction, sensorData) => {
+    const freqDiff = Math.abs(prediction.Frequency - sensorData.Frequency);
+    const ampDiff = Math.abs(prediction.Amplitude - sensorData.Amplitude);
     const durDiff = Math.abs(prediction.Duration - sensorData.Duration);
     return freqDiff < 20 && ampDiff < 10 && durDiff < 5;
   };
