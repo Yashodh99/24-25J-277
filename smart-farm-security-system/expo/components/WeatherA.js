@@ -1,14 +1,14 @@
 import React from 'react';
-import { ActivityIndicator, TextInput, View, StyleSheet, TouchableOpacity, Text, Image, ScrollView } from 'react-native';
+import { TextInput, View, StyleSheet, TouchableOpacity, Text, Image, ScrollView } from 'react-native';
 import 'react-native-gesture-handler';
-import { Picker } from '@react-native-picker/picker';
-import AwesomeAlert from 'react-native-awesome-alerts';
-import axios from "axios";
-import LocalIP from "./localIPAddress";
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import * as Permissions from 'expo-permissions';
 import * as Location from 'expo-location';
+import axios from 'axios';
+import LocalIP from './localIPAddress';
+import AwesomeAlert from 'react-native-awesome-alerts';
 import ESP32IP from "./ESP32IP";
+import store from './GlobalStore';
 
 export default class Weather_Code extends React.Component {
   static navigationOptions = ({ navigation }) => ({
@@ -25,7 +25,7 @@ export default class Weather_Code extends React.Component {
     headerLeft: () => (
       <View style={{ marginLeft: 10, marginTop: 5 }}>
         <TouchableOpacity onPress={() => navigation.navigate('HomePage')}>
-          <MaterialCommunityIcons name="menu" color='#ffffff' size={30} />
+          <MaterialCommunityIcons name="menu" color="#ffffff" size={30} />
         </TouchableOpacity>
       </View>
     ),
@@ -33,14 +33,13 @@ export default class Weather_Code extends React.Component {
 
   constructor(props) {
     super(props);
-
     this.state = {
       temperature: '',
       rain: '',
       windspeed: '',
       humidity: '',
       soilMoisture: '',
-      vibration: '', // Added vibration state
+      vibration: '',
       message: '',
       resultTxt: '',
       result: false,
@@ -48,156 +47,182 @@ export default class Weather_Code extends React.Component {
       title: '',
       latitude: '',
       longitude: '',
-      actualvibration:'',
-      loader: false,
+      actualvibration: '',
+      lastUpdated: null,
+      manualRain: null,
+      latestCondition: 'Normal',
     };
+    this.interval = null;
+    this.sensorInterval = null;
   }
 
   componentDidMount() {
     this.requestLocationPermission();
-    this.fetchSensorData(); // Renamed to fetchSensorData for clarity
+    this.interval = setInterval(this.refreshWeatherAndInsert, 5000);
+    this.sensorInterval = setInterval(this.fetchSensorData, 2000);
   }
 
   componentWillUnmount() {
-    if (this.interval) {
-      clearInterval(this.interval);
-    }
+    if (this.interval) clearInterval(this.interval);
+    if (this.sensorInterval) clearInterval(this.sensorInterval);
   }
 
   requestLocationPermission = async () => {
     const { status } = await Permissions.askAsync(Permissions.LOCATION);
-    console.log(status);
-    let location = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.High,
-    });
-    this.setState({ latitude: location.coords.latitude, longitude: location.coords.longitude });
-    const apiKey = 'dd622b9622486c70fdaa0f2543e09cbb';
-    const url = `https://api.openweathermap.org/data/2.5/weather?lat=${location.coords.latitude}&lon=${location.coords.longitude}&appid=${apiKey}&units=metric`;
+    if (status !== 'granted') {
+      return this.setError("Location permission not granted.");
+    }
 
     try {
+      let location = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      this.setState({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+      await this.fetchWeatherData();
+    } catch (error) {
+      console.error('Error getting location:', error);
+    }
+  };
+
+  fetchWeatherData = async () => {
+    try {
+      const { latitude, longitude } = this.state;
+      if (!latitude || !longitude) return;
+
+      const apiKey = 'dd622b9622486c70fdaa0f2543e09cbb';
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`;
+
       const response = await axios.get(url);
       const data = response.data;
-      const rainValue = data.rain && (data.rain["1h"] || data.rain["3h"]) ? 
-                    (data.rain["1h"] || data.rain["3h"]) : 
-                    "0";
-      await this.setState({ humidity: data.main.humidity, temperature: data.main.temp, windspeed: data.wind.speed, rain: rainValue.toString() });
+      const rainValue = data.rain && (data.rain["1h"] || data.rain["3h"]) ? (data.rain["1h"] || data.rain["3h"]) : "0";
+
+      this.setState(prevState => ({
+        humidity: data.main.humidity.toString(),
+        temperature: data.main.temp.toString(),
+        windspeed: data.wind.speed.toString(),
+        rain: prevState.manualRain !== null ? prevState.manualRain : rainValue.toString()
+      }));
     } catch (error) {
       console.error('Error fetching weather data:', error);
-      throw error;
     }
   };
 
   fetchSensorData = async () => {
-    this.setState({ loader: true });
-    this.interval = setInterval(async () => {
-      const url = "http://" + ESP32IP + "/data";
-      try {
-        const response = await axios.get(url, {
-          headers: { "Content-Type": "application/json" },
-          timeout: 20000,
-        });
-        console.log(response.data);
-        this.setState({
-          loader: false,
-          soilMoisture: response.data.soilMoistureValue + "",
-          vibration: response.data.vibrationValue + "", 
-        });
-      } catch (error) {
-        console.error('Error fetching sensor data:', error);
-        this.setState({ loader: false });
-      }
-    }, 2000);
+    const url = "http://" + ESP32IP + "/data";
+
+    try {
+      const response = await axios.get(url, {
+        headers: { "Content-Type": "application/json" },
+        timeout: 20000,
+      });
+
+      const vibrationRaw = response.data.vibrationValue + "";
+      const vibration = parseFloat(vibrationRaw);
+      const soilMoisture = response.data.soilMoistureValue + "";
+
+      this.setState({
+        soilMoisture,
+        vibration: vibrationRaw
+      });
+    } catch (error) {
+      console.error('Error fetching sensor data:', error);
+    }
+  };
+
+  refreshWeatherAndInsert = async () => {
+    await this.fetchWeatherData();
+    this.onInsert();
   };
 
   showAlert = () => {
-    this.setState({
-      showAlert: true,
-    });
+    this.setState({ showAlert: true });
   };
 
   hideAlert = () => {
-    this.setState({
-      showAlert: false,
-      message: '',
-      title: '',
-    });
+    this.setState({ showAlert: false, message: '', title: '' });
   };
 
-  onInsert = async (e) => {
-    if (this.state.temperature !== "") {
-      if (this.state.rain !== "") {
-        if (this.state.windspeed !== "") {
-          if (this.state.humidity !== "") {
-            if (this.state.soilMoisture !== "") {
-              if (this.state.vibration !== "") { 
-                this.setState({ loader: true });
-                const url = "http://" + LocalIP + ":2222/weather";
-                const data = JSON.stringify({
-                  temperature: this.state.temperature,
-                  rain: this.state.rain,
-                  windspeed: this.state.windspeed,
-                  humidity: this.state.humidity,
-                  soilMoisture: this.state.soilMoisture,
-                  vibration: this.state.vibration, 
-                });
-                await axios.post(url, data, {
-                  headers: { "Content-Type": "application/json" },
-                }).then(async (res) => {
-                  let weatherCondition = "";
-                  if (res.data.res >= 0 && res.data.res < 50) {
-                    weatherCondition = "Dry";
-                  }  else if (res.data.res >= 50 && res.data.res < 60) {
-                    weatherCondition = "Normal";
-                  } else if (res.data.res >= 60 && res.data.res < 70) {
-                    weatherCondition = "Wet";
-                  } else {
-                    weatherCondition = "Unidentified";
-                  }
-                  let actualVibration;
-                const vibration = parseFloat(this.state.vibration); 
-                if (weatherCondition === "Dry") {
-                  actualVibration = vibration * 0.99;
-                } else if (weatherCondition === "Normal") {
-                  actualVibration = vibration * 1;
-                } else if (weatherCondition === "Wet") {
-                  actualVibration = vibration * 1.01;
-                } else {
-                  actualVibration = vibration; 
-                }
-                  this.setState({
-                    loader: false,
-                    result: true,
-                    resultTxt: `Weather Condition: ${weatherCondition}`,
-                    actualvibration: `Actual Vibration:${actualVibration}`
-                    
-                  });
-                  console.log(res.data);
-                });
-              } else {
-                this.setState({ title: "Error!", message: "Vibration data is not available!" });
-                this.showAlert();
-              }
-            } else {
-              this.setState({ title: "Error!", message: "Soil Moisture data is not available!" });
-              this.showAlert();
-            }
-          } else {
-            this.setState({ title: "Error!", message: "Please enter Humidity!" });
-            this.showAlert();
-          }
-        } else {
-          this.setState({ title: "Error!", message: "Please enter Windspeed!" });
-          this.showAlert();
-        }
-      } else {
-        this.setState({ title: "Error!", message: "Please enter Rain!" });
-        this.showAlert();
+  onInsert = async () => {
+    const {
+      temperature, windspeed, humidity, soilMoisture,
+      vibration, rain, manualRain
+    } = this.state;
+
+    if (!temperature || !rain || !windspeed || !humidity || !soilMoisture || !vibration) {
+      return this.setError("Missing data. Ensure all fields are available.");
+    }
+
+    const rainToUse = manualRain !== null ? manualRain : rain;
+
+    const requestData = JSON.stringify({
+      temperature,
+      rain: rainToUse,
+      windspeed,
+      humidity,
+      soilMoisture,
+      vibration
+    });
+
+    try {
+      const res = await axios.post(`http://${LocalIP}:2222/weather`, requestData, {
+        headers: { "Content-Type": "application/json" }
+      });
+
+     
+      if (res.data.res >= 0 && res.data.res <= 10) weatherCondition = "Dry";
+      else if (res.data.res >= 11 && res.data.res <= 19) weatherCondition = "Normal";
+      else if (res.data.res >= 20 && res.data.res <= 40) weatherCondition = "Wet";
+
+      const vib = parseFloat(vibration);
+      let actualVibration = 0;
+      if (!isNaN(vib)) {
+        if (weatherCondition === "Dry") actualVibration = vib * 0.99;
+        else if (weatherCondition === "Normal") actualVibration = vib;
+        else if (weatherCondition === "Wet") actualVibration = vib * 1.01;
       }
-    } else {
-      this.setState({ title: "Error!", message: "Please enter Temperature!" });
-      this.showAlert();
+
+      this.setState({
+        result: true,
+        resultTxt: `Weather Condition: ${weatherCondition}`,
+        actualvibration: `Actual Vibration: ${actualVibration.toFixed(2)}`,
+        lastUpdated: new Date().toLocaleTimeString(),
+        latestCondition: weatherCondition,
+        manualRain: null // ✅ clear after using once
+      });
+
+      store.setWeatherCondition(weatherCondition);
+    } catch (err) {
+      console.error("Insert Error:", err);
+      this.setError("Failed to submit data.");
     }
   };
+
+  setError(message) {
+    this.setState({ title: "Error!", message });
+    this.showAlert();
+  }
+
+  renderInput(label, stateKey, readOnly = false, onManualOverride = false) {
+    return (
+      <>
+        <Text style={styles.labelText}>{label}</Text>
+        <View style={styles.center}>
+          <TextInput
+            value={this.state[stateKey].toString()}
+            editable={!readOnly}
+            onChangeText={(val) => {
+              if (onManualOverride && stateKey === 'rain') {
+                this.setState({ [stateKey]: val, manualRain: val });
+              } else {
+                this.setState({ [stateKey]: val });
+              }
+            }}
+            placeholder={label}
+            keyboardType='numeric'
+            style={styles.input}
+          />
+        </View>
+      </>
+    );
+  }
 
   render() {
     const { showAlert } = this.state;
@@ -212,98 +237,20 @@ export default class Weather_Code extends React.Component {
             />
           </View>
 
-          <Text style={styles.labelText}>Temperature (°C):</Text>
-          <View style={styles.center}>
-            <TextInput
-              value={this.state.temperature.toString()}
-              onChangeText={(temperature) => this.setState({ temperature })}
-              placeholder={'Temperature'}
-              keyboardType='numeric'
-              style={styles.input}
-            />
-          </View>
-
-          <Text style={styles.labelText}>Rain (mm):</Text>
-          <View style={styles.center}>
-            <TextInput
-              value={this.state.rain.toString()}
-              onChangeText={(rain) => this.setState({ rain })}
-              placeholder={'Rain'}
-              keyboardType='numeric'
-              style={styles.input}
-            />
-          </View>
-
-          <Text style={styles.labelText}>Windspeed (km/h):</Text>
-          <View style={styles.center}>
-            <TextInput
-              value={this.state.windspeed.toString()}
-              onChangeText={(windspeed) => this.setState({ windspeed })}
-              placeholder={'Windspeed'}
-              keyboardType='numeric'
-              style={styles.input}
-            />
-          </View>
-
-          <Text style={styles.labelText}>Humidity (%):</Text>
-          <View style={styles.center}>
-            <TextInput
-              value={this.state.humidity.toString()}
-              onChangeText={(humidity) => this.setState({ humidity })}
-              placeholder={'Humidity'}
-              keyboardType='numeric'
-              style={styles.input}
-            />
-          </View>
-
-          <Text style={styles.labelText}>Soil Moisture (%):</Text>
-          <View style={styles.center}>
-  {!this.state.loader ? (
-    <TextInput
-      value={(parseFloat(this.state.soilMoisture)).toString()} 
-      onChangeText={(text) => {
-  
-        const originalValue = (parseFloat(text) * 1000).toString();
-        this.setState({ soilMoisture: isNaN(originalValue) ? '' : originalValue });
-      }}
-      placeholder={'Soil Moisture'}
-      keyboardType='numeric'
-      style={styles.input}
-    />
-  ) : (
-    <ActivityIndicator size="large" color={"#000000"} />
-  )}
-</View>
-
-          <Text style={styles.labelText}>Vibration:</Text>
-          <View style={styles.center}>
-            {!this.state.loader ? (
-              <TextInput
-                value={this.state.vibration.toString()}
-                onChangeText={(vibration) => this.setState({ vibration })}
-                placeholder={'Vibration'}
-                keyboardType='numeric'
-                style={styles.input}
-              />
-            ) : (
-              <ActivityIndicator size="large" color={"#000000"} />
-            )}
-          </View>
-
-          <View style={styles.center}>
-            <TouchableOpacity style={[styles.buttonContainer, styles.loginButton]} onPress={this.onInsert}>
-              {!this.state.loader ? (
-                <Text style={{ color: '#ffffff', fontWeight: 'bold' }}>Submit</Text>
-              ) : (
-                <ActivityIndicator size="large" color={"#ffffff"} />
-              )}
-            </TouchableOpacity>
-          </View>
+          {this.renderInput("Temperature (°C):", "temperature")}
+          {this.renderInput("Rain (mm):", "rain", false, true)}
+          {this.renderInput("Windspeed (km/h):", "windspeed")}
+          {this.renderInput("Humidity (%):", "humidity")}
+          {this.renderInput("Soil Moisture (%):", "soilMoisture", true)}
+          {this.renderInput("Vibration:", "vibration", true)}
 
           {this.state.result && (
             <View style={styles.center}>
               <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{this.state.resultTxt}</Text>
               <Text style={{ fontWeight: 'bold', fontSize: 18 }}>{this.state.actualvibration}</Text>
+              <Text style={{ fontStyle: 'italic', fontSize: 14, marginTop: 5 }}>
+                Last Updated: {this.state.lastUpdated}
+              </Text>
             </View>
           )}
 
@@ -316,9 +263,7 @@ export default class Weather_Code extends React.Component {
             showCancelButton={true}
             cancelText="Close"
             cancelButtonColor="#AEDEF4"
-            onCancelPressed={() => {
-              this.hideAlert();
-            }}
+            onCancelPressed={this.hideAlert}
           />
         </View>
       </ScrollView>
@@ -346,16 +291,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderBottomColor: '#c4c4c4',
     color: '#000000',
-  },
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: '80%',
-    height: 45,
-    borderRadius: 10,
-  },
-  loginButton: {
-    backgroundColor: '#1875bb',
   },
 });
