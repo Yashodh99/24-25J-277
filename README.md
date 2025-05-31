@@ -9,7 +9,7 @@ The **Smart Farm Security System** is an innovative solution designed to enhance
 ### 1. Vibration-Based Animal Detection and Identification  
 **Author:** W.Y.M. Fernando (IT21276996)  
 **Objective:**  
-This component leverages vibration sensors to detect and identify animal movements, ensuring timely interventions.  
+This component leverages vibration sensors to detect and identify animal movements and classify the targeted animal, ensuring timely interventions.  
 
 **Key Features:**  
 - Detect animal presence using vibration patterns.  
@@ -19,7 +19,7 @@ This component leverages vibration sensors to detect and identify animal movemen
 
 **Technologies Used:**  
 - **Hardware:** Raspberry Pi, Piezoelectric Vibration Sensors.  
-- **Software:** Python, TensorFlow, FireBase, SciPy.
+- **Software:** Python, TensorFlow, FireBase.
 
 ---
 
