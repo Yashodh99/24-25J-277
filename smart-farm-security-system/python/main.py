@@ -15,6 +15,11 @@ from tensorflow.keras.utils import custom_object_scope
 with open('models/w_model.dat', 'rb') as f:
     w_model = pickle.load(f)
 
+
+#motion model
+with open('models/motion_model.dat', 'rb') as f:
+    motion_model = pickle.load(f)
+
 # Ensure temp directory exists
 UPLOAD_FOLDER = "temp/"
 if not os.path.exists(UPLOAD_FOLDER):
@@ -38,6 +43,23 @@ def weather_predict():
         soil_moisture = float(request_data['soilMoisture'])
 
         results = w_model.predict([[temperature, rain, windspeed, humidity, soil_moisture]])[0]
+        return jsonify({"res": str(results), "success": True}), 200
+    except (KeyError, ValueError) as e:
+        return jsonify({"error": f"Invalid input: {str(e)}", "success": False}), 400
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+    
+
+@app.route('/motion', methods=['POST'])
+def motion_predict():
+    """Predict motion based on input data."""
+    try:
+        request_data = request.get_json()
+        if not request_data:
+            return jsonify({"error": "No JSON data provided"}), 400
+
+        inputs = [int(request_data[f'x{i}']) for i in range(1, 11)]
+        results = motion_model.predict([inputs])[0]
         return jsonify({"res": str(results), "success": True}), 200
     except (KeyError, ValueError) as e:
         return jsonify({"error": f"Invalid input: {str(e)}", "success": False}), 400

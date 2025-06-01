@@ -1,10 +1,13 @@
 import React, { Component } from 'react';
-import { ActivityIndicator, View, StyleSheet, Text, Image } from 'react-native';
+import { ActivityIndicator, View, StyleSheet, TouchableOpacity, Text, Image } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import 'react-native-gesture-handler';
 import AwesomeAlert from 'react-native-awesome-alerts';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from "axios";
 import LocalIP from "./localIPAddress";
 import ESP32IP from "./ESP32IP";
-import store from './GlobalStore';
 
 export default class AnimalA extends React.Component {
     constructor(props) {
@@ -16,24 +19,23 @@ export default class AnimalA extends React.Component {
             showAlert: false,
             title: '',
             resultTxt: '',
-            distanceValue: '',
+            distanceValue: '',  // Added distanceValue to state
             vibrationValue: '',
             buzzer: '0',
-            weatherCondition: store.weatherCondition || 'Loading...',
-            x1: null,
-            x2: null,
-            x3: null,
-            x4: null,
-            x5: null,
-            x6: null,
-            x7: null,
-            x8: null,
-            x9: null,
-            x10: null,
+            x1: 0,
+            x2: 0,
+            x3: 0,
+            x4: 0,
+            x5: 0,
+            x6: 0,
+            x7: 0,
+            x8: 0,
+            x9: 0,
+            x10: 0,
         };
     }
 
-    static navigationOptions = () => ({
+    static navigationOptions = ({ navigation }) => ({
         title: 'Animal Detect',
         headerStyle: {
             backgroundColor: '#1875bb',
@@ -48,62 +50,68 @@ export default class AnimalA extends React.Component {
     });
 
     componentDidMount = async () => {
-        store.subscribe(this.handleWeatherChange);
-
         this.setState({ loader: true });
-
         this.interval = setInterval(async () => {
             const url = "http://" + ESP32IP + "/data";
-
-            try {
-                const res = await axios.get(url, {
-                    headers: { "Content-Type": "application/json" },
-                    timeout: 20000
-                });
-
-                const vib = parseFloat(res.data.vibrationValue);
-                let adjustedVibration = vib;
-
-
-                const { weatherCondition } = this.state;
-                if (weatherCondition === "Dry") adjustedVibration = vib * 0.99;
-                else if (weatherCondition === "Wet") adjustedVibration = vib * 1.01;
-
-                adjustedVibration = Number(adjustedVibration);
+            await axios.get(url, {
+                headers: { "Content-Type": "application/json" },
+                timeout: 20000
+            }).then(async (res) => {
+                console.log(res.data);
+                // Update state with distanceValue on every fetch
                 this.setState({ distanceValue: res.data.distanceValue + "" });
 
-
-                for (let i = 1; i <= 10; i++) {
-                    if (this.state[`x${i}`] === null) {
-                        this.setState({ [`x${i}`]: adjustedVibration });
-                        break;
-                    }
+                // Fill vibration values sequentially
+                if (this.state.x1 === 0) {
+                    this.setState({ x1: res.data.vibrationValue + "" });
+                } else if (this.state.x2 === 0) {
+                    this.setState({ x2: res.data.vibrationValue + "" });
+                } else if (this.state.x3 === 0) {
+                    this.setState({ x3: res.data.vibrationValue + "" });
+                } else if (this.state.x4 === 0) {
+                    this.setState({ x4: res.data.vibrationValue + "" });
+                } else if (this.state.x5 === 0) {
+                    this.setState({ x5: res.data.vibrationValue + "" });
+                } else if (this.state.x6 === 0) {
+                    this.setState({ x6: res.data.vibrationValue + "" });
+                } else if (this.state.x7 === 0) {
+                    this.setState({ x7: res.data.vibrationValue + "" });
+                } else if (this.state.x8 === 0) {
+                    this.setState({ x8: res.data.vibrationValue + "" });
+                } else if (this.state.x9 === 0) {
+                    this.setState({ x9: res.data.vibrationValue + "" });
+                } else if (this.state.x10 === 0) {
+                    this.setState({
+                        loader: false,
+                        x10: res.data.vibrationValue + ""
+                    });
                 }
 
-
-                if (this.state.x10 !== null) {
-                    const motionUrl = "http://" + LocalIP + ":2222/motion";
-                    const data = {
-                        x1: this.state.x1, x2: this.state.x2, x3: this.state.x3,
-                        x4: this.state.x4, x5: this.state.x5, x6: this.state.x6,
-                        x7: this.state.x7, x8: this.state.x8, x9: this.state.x9,
+                // Once all vibration values are collected, make the motion prediction
+                if (this.state.x10 !== 0) {
+                    const url = "http://" + LocalIP + ":2222/motion";
+                    const data = JSON.stringify({
+                        x1: this.state.x1,
+                        x2: this.state.x2,
+                        x3: this.state.x3,
+                        x4: this.state.x4,
+                        x5: this.state.x5,
+                        x6: this.state.x6,
+                        x7: this.state.x7,
+                        x8: this.state.x8,
+                        x9: this.state.x9,
                         x10: this.state.x10
-                    };
-
-                    try {
-                        const motionRes = await axios.post(motionUrl, data, {
-                            headers: { "Content-Type": "application/json" }
-                        });
-
-                        this.setState({
-                            resultTxt: "Detected Animal: " + motionRes.data.res,
-                            loader: false
-                        });
-                    } catch (motionErr) {
-                        console.log("Motion Error:", motionErr.response ? motionErr.response.data : motionErr.message);
-                    }
+                    });
+                    await axios.post(url, data, {
+                        headers: { "Content-Type": "application/json" }
+                    }).then(async (res) => {
+                        this.setState({ resultTxt: "Detected Animal: " + res.data.res });
+                        console.log(res.data);
+                    }).catch((error) => {
+                        console.log("Motion Error:", error.response ? error.response.data : error.message);
+                    });
                 }
-            } catch (error) {
+            }).catch((error) => {
                 console.log("ESP32 Error:", error.response ? error.response.data : error.message);
                 this.setState({
                     loader: false,
@@ -111,47 +119,39 @@ export default class AnimalA extends React.Component {
                     message: "Failed to fetch data from ESP32",
                     showAlert: true
                 });
-            }
+            });
         }, 2000);
-    };
-
-    componentWillUnmount() {
-        if (this.interval) clearInterval(this.interval);
-        store.unsubscribe(this.handleWeatherChange);
     }
 
-    handleWeatherChange = (newCondition) => {
-        this.setState({ weatherCondition: newCondition });
-    };
+    componentWillUnmount() {
+        // Clear the interval when the component unmounts to prevent memory leaks
+        if (this.interval) {
+            clearInterval(this.interval);
+        }
+    }
 
     hideAlert = () => {
         this.setState({ showAlert: false, message: "", title: "" });
     };
 
     render() {
-        const { showAlert, resultTxt, distanceValue, weatherCondition, loader } = this.state;
-
+        const { showAlert } = this.state;
         return (
             <View style={styles.container}>
-                <Image
-                    source={require('./../assets/logo2.jpg')}
-                    style={{ width: 200, height: 200, marginBottom: 40, borderRadius: 100 }}
-                />
+                <Image source={require('./../assets/logo2.jpg')}
+                    style={{ width: 200, height: 200, marginBottom: 40, borderRadius: 100 }} />
 
                 <View style={styles.center}>
-                    {!loader && (
-                        <>
+                    {!this.state.loader ? (
+                        <View style={styles.resultContainer}>
                             <Text style={styles.resultText}>
-                                {resultTxt || "Collecting sensor data..."}
+                                {this.state.resultTxt} {this.state.distanceValue && `- Distance: ${this.state.distanceValue}`}
                             </Text>
-                            {distanceValue && (
-                                <Text style={styles.resultText}>Distance: {distanceValue}</Text>
-                            )}
-                            <Text style={styles.resultText}>Weather: {weatherCondition}</Text>
-                        </>
-                    )}
-
-                    {loader && <ActivityIndicator size="large" color={"#000000"} />}
+                        </View>
+                    ) : null}
+                    {this.state.loader ? (
+                        <ActivityIndicator size="large" color={"#000000"} />
+                    ) : null}
                 </View>
 
                 <AwesomeAlert
@@ -179,12 +179,39 @@ const styles = StyleSheet.create({
     },
     center: {
         marginBottom: 20,
+    },
+    resultContainer: {
+        flexDirection: 'row',  // Align text horizontally
         alignItems: 'center',
     },
     resultText: {
         fontWeight: 'bold',
-        fontSize: 20,
+        fontSize: 24,
         textAlign: 'center',
-        marginVertical: 5,
+    },
+    dashboardContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        marginTop: 30,
+    },
+    card: {
+        width: '40%',
+        height: 120,
+        margin: 10,
+        backgroundColor: '#f5f5f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 10,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        shadowRadius: 5,
+        elevation: 3,
+    },
+    cardText: {
+        marginTop: 10,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
