@@ -65,6 +65,7 @@ Develop intelligent systems to tailor animal deterrent strategies based on behav
 
 #### Key Features:
 - Use IoT sensors like vibration sensors and acoustic devices for data collection.
+- Identify animal category using a camera.
 - Ensure animal behaviors.
 - Deploy species-specific deterrents.
 - Minimize human-animal conflicts while reducing harm to non-target species.
